@@ -128,7 +128,8 @@ const createTestDataMange = {
     // eslint-disable-next-line global-require
     const EthereumTx = require("ethereumjs-tx").Transaction;
     const tx = new EthereumTx(txObject.toString("hex"));
-    tx.sign(Config.getIns().hexPrivateKey);
+    const privateKey = Buffer.from(Config.getIns().hexPrivateKey.substring(2), 'hex');
+    tx.sign(privateKey);
     const serializedTx = tx.serialize();
     return serializedTx.toString("hex");
   },

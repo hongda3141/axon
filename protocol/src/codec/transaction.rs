@@ -4,6 +4,7 @@ use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 
 use common_crypto::secp256k1_recover;
 
+use crate::lazy::CHAIN_ID;
 use crate::types::{
     public_to_address, AccessList, AccessListItem, Bytes, BytesMut, Eip1559Transaction,
     Eip2930Transaction, Hasher, LegacyTransaction, Public, SignatureComponents, SignedTransaction,
@@ -124,7 +125,7 @@ impl LegacyTransaction {
             unsigned:  UnsignedTransaction::Legacy(tx),
             signature: Some(SignatureComponents::rlp_decode(r, 6, Some(v))?),
             chain_id:  SignatureComponents::extract_chain_id(v)
-                .ok_or(DecoderError::Custom("Missing chain id"))?,
+                .unwrap_or_else(|| **CHAIN_ID.load()),
             hash:      Hasher::digest(r.as_raw()),
         })
     }
@@ -403,7 +404,28 @@ mod tests {
     }
 
     #[test]
-    fn test_legacy_decode() {
+    fn test_legacy_decode_without_chain_id() {
+        let bytes = hex_decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a801ba048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804").unwrap();
+        let tx = UnverifiedTransaction::decode(&Rlp::new(&bytes)).unwrap();
+
+        assert!(tx.unsigned.data().is_empty());
+        assert_eq!(*tx.unsigned.gas_limit(), U256::from(0x5208u64));
+        assert_eq!(tx.unsigned.gas_price(), U256::from(0x01u64));
+        assert_eq!(*tx.unsigned.nonce(), U256::from(0x00u64));
+        assert_eq!(
+            tx.unsigned.to().unwrap(),
+            H160::from_slice(&hex_decode("095e7baea6a6c7c4c2dfeb977efac326af552d87").unwrap())
+        );
+        assert_eq!(*tx.unsigned.value(), U256::from(0x0au64));
+        assert_eq!(
+            public_to_address(&tx.recover_public(false).unwrap()),
+            H160::from_slice(&hex_decode("0f65fe9276bc9a24ae7083ae28e2660ef72df99e").unwrap())
+        );
+        assert_eq!(tx.chain_id, 0);
+    }
+
+    #[test]
+    fn test_legacy_decode_with_chain_id() {
         let bytes = hex_decode("f85f800182520894095e7baea6a6c7c4c2dfeb977efac326af552d870a8023a048b55bfa915ac795c431978d8a6a992b628d557da5ff759b307d495a36649353a0efffd310ac743f371de3b9f7f9cb56c0b28ad43601b4ab949f53faa07bd2c804").unwrap();
         let tx = UnverifiedTransaction::decode(&Rlp::new(&bytes)).unwrap();
 

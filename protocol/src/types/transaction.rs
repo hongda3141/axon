@@ -396,6 +396,8 @@ impl SignatureComponents {
 
     pub fn extract_standard_v(v: u64) -> Option<u8> {
         match v {
+            v if v == 27 => Some(0),
+            v if v == 28 => Some(1),
             v if v >= 35 => Some(((v - 1) % 2) as u8),
             _ => None,
         }
