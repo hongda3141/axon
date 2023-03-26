@@ -124,8 +124,7 @@ impl LegacyTransaction {
         Ok(UnverifiedTransaction {
             unsigned:  UnsignedTransaction::Legacy(tx),
             signature: Some(SignatureComponents::rlp_decode(r, 6, Some(v))?),
-            chain_id:  SignatureComponents::extract_chain_id(v)
-                .unwrap_or_else(|| **CHAIN_ID.load()),
+            chain_id:  SignatureComponents::extract_chain_id(v).unwrap_or(**CHAIN_ID.load()),
             hash:      Hasher::digest(r.as_raw()),
         })
     }
