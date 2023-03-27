@@ -3,11 +3,14 @@
   "scripts": {
     "test": "jest -i",
     "test-single": "jest",
+    "test-single1": "HEADLESS=true jest --testPathPattern='eth_sendRawTransaction'",
+    "test-single2": "jest --testPathPattern='eth_sendRawTransaction'",
     "lint": "eslint src/*.js ./*.js"
   },
   "dependencies": {
     "@chainsafe/dappeteer": "^5",
-    "ethereumjs-tx": "^2.1.2",
+    "@ethereumjs/tx": "3.3.2",
+    "@ethereumjs/common": "3.1.1",
     "puppeteer": "^19.7.2",
     "web3": "^1.8.2",
     "xhr2": "^0.2.1"

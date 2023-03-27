@@ -126,11 +126,55 @@ const createTestDataMange = {
       value: web3.utils.toHex(web3.utils.toWei("1", "ether")),
     };
     // eslint-disable-next-line global-require
-    const EthereumTx = require("ethereumjs-tx").Transaction;
+    // const EthereumTx = require("ethereumjs-tx").Transaction;
+    const EthereumTx = require('@ethereumjs/tx').Transaction;
     const tx = new EthereumTx(txObject.toString("hex"));
     const privateKey = Buffer.from(Config.getIns().hexPrivateKey.substring(2), 'hex');
     tx.sign(privateKey);
     const serializedTx = tx.serialize();
+    return serializedTx.toString("hex");
+  },
+  async sendNonEip155RawTestTx() {
+    const toAddress = Config.getIns().acount2;
+    const nonce = (await web3.eth.getTransactionCount(accountFrom.address)) + 1;
+    const txObject = {
+      nonce: nonce.toString(),
+      gasPrice: web3.utils.toHex(web3.utils.toWei("10", "gwei")),
+      gasLimit: web3.utils.toHex(21000),
+      to: toAddress,
+      value: web3.utils.toHex(web3.utils.toWei("1", "ether")),
+      // chain: "mainnet", 
+      // hardfork: "homestead",
+    };
+    // eslint-disable-next-line global-require    // "@ethereumjs/tx": "^2.0.0",
+    // import Common, { Chain, Hardfork } from '@ethereumjs/common'
+// import { FeeMarketEIP1559Transaction } from '@ethereumjs/tx'
+    // const Common = require('@ethereumjs/common').default;
+    const  { Chain, Common, Hardfork }  = require('@ethereumjs/common');
+    // const Common  = require('@ethereumjs/common');
+    const Transaction = require('@ethereumjs/tx').Transaction;
+    // const test = Common.
+    // const EthereumTx = require("ethereumjs-tx").Transaction;
+    // const tx = Transaction.fromTxData(txObject.toString("hex"), { common: new Common({ chain: "mainnet", hardfork: "homestead" }) });
+    // const tx = new EthereumTx(txObject.toString("hex"), { chain: "mainnet", hardfork: "homestead" });
+    // const tx = Transaction.fromTxData(txObject.toString("hex"), { chain: "mainnet", hardfork: "homestead" });
+    // const tx = Transaction.fromTxData(txObject.toString("hex"), { common: new Common({ chain: "mainnet", hardfork: "homestead" }) });
+    // const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.TangerineWhistle, eips: [4844] })
+    const common = new Common({chain: Chain.Mainnet, hardfork: Hardfork.TangerineWhistle});
+    // const common = new Common.Common({ common: {hardfork: Hardfork.TangerineWhistle}});
+    const tx = Transaction.fromTxData(txObject.toString("hex"),{common});
+    // const tx = Transaction.fromTxData(txParams, { common: new Common({ chain: txParams.chain, hardfork: txParams.hardfork }) });
+    // const tx = new EthereumTx(txObject.toString("hex"), {
+    //   chain: 'mainnet',// ropsten
+    //   hardfork: 'Spurious Dragon', spuriousDragon
+    //   // hardfork: 'homestead',  byzantium frontierThawing tangerineWhistle
+    // });
+    console.log(tx);
+    const privateKey = Buffer.from(Config.getIns().hexPrivateKey.substring(2), 'hex');
+    tx.sign(privateKey);
+    const serializedTx = tx.serialize();
+    console.log(serializedTx);
+    console.log(serializedTx.toString("hex"));
     return serializedTx.toString("hex");
   },
 };

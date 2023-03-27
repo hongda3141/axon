@@ -107,6 +107,13 @@ impl LegacyTransaction {
     }
 
     fn rlp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError> {
+        println!("lp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError>AAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        ");
         if r.item_count()? != 9 {
             return Err(DecoderError::RlpIncorrectListLen);
         }
@@ -306,6 +313,15 @@ impl Decodable for UnverifiedTransaction {
         let raw = r.as_raw();
         let header = raw[0];
 
+        println!("let header = raw[0];AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        ");
+        println!("header: {:?}, and: {:?}", header, header & 0x80);
+        println!("raw: {:?}", &raw[0..10]);
         if (header & 0x80) != 0x00 {
             return LegacyTransaction::rlp_decode(r);
         }
