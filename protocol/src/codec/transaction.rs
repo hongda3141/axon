@@ -4,7 +4,6 @@ use rlp::{Decodable, DecoderError, Encodable, Rlp, RlpStream};
 
 use common_crypto::secp256k1_recover;
 
-use crate::lazy::CHAIN_ID;
 use crate::types::{
     public_to_address, AccessList, AccessListItem, Bytes, BytesMut, Eip1559Transaction,
     Eip2930Transaction, Hasher, LegacyTransaction, Public, SignatureComponents, SignedTransaction,
@@ -33,6 +32,7 @@ impl Encodable for SignatureComponents {
 impl SignatureComponents {
     fn rlp_decode(rlp: &Rlp, offset: usize, legacy_v: Option<u64>) -> Result<Self, DecoderError> {
         let v: u8 = if let Some(n) = legacy_v {
+            println!("legacy v is {}", n);
             SignatureComponents::extract_standard_v(n)
                 .ok_or(DecoderError::Custom("invalid legacy v in signature"))?
         } else {
@@ -107,7 +107,8 @@ impl LegacyTransaction {
     }
 
     fn rlp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError> {
-        println!("lp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError>AAAAAA
+        println!("UnverifiedTransaction decode :
+        lp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError>AAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -127,11 +128,15 @@ impl LegacyTransaction {
             data:      r.val_at(5)?,
         };
         let v: u64 = r.val_at(6)?;
+        println!("decode v is : {}", v);
 
         Ok(UnverifiedTransaction {
             unsigned:  UnsignedTransaction::Legacy(tx),
             signature: Some(SignatureComponents::rlp_decode(r, 6, Some(v))?),
-            chain_id:  SignatureComponents::extract_chain_id(v).unwrap_or(**CHAIN_ID.load()),
+            // chain_id:  0,
+            // chain_id:  SignatureComponents::extract_chain_id(v).unwrap_or(**CHAIN_ID.load()),
+            // chain_id:  SignatureComponents::extract_chain_id(v),
+            chain_id:  SignatureComponents::extract_chain_id(v),
             hash:      Hasher::digest(r.as_raw()),
         })
     }
@@ -204,7 +209,7 @@ impl Eip2930Transaction {
             hash:      Hasher::digest([&[tx.as_u8()], r.as_raw()].concat()),
             unsigned:  tx,
             signature: Some(SignatureComponents::rlp_decode(r, 8, None)?),
-            chain_id:  id,
+            chain_id:  Some(id),
         })
     }
 }
@@ -278,19 +283,19 @@ impl Eip1559Transaction {
             hash:      Hasher::digest([&[tx.as_u8()], r.as_raw()].concat()),
             unsigned:  tx,
             signature: Some(SignatureComponents::rlp_decode(r, 9, None)?),
-            chain_id:  id,
+            chain_id:  Some(id),
         })
     }
 }
 
 impl Encodable for UnverifiedTransaction {
     fn rlp_append(&self, s: &mut RlpStream) {
-        let chain_id = Some(self.chain_id);
+        // let chain_id = Some(self.chain_id);
 
         match &self.unsigned {
-            UnsignedTransaction::Legacy(tx) => tx.rlp_encode(s, chain_id, self.signature.as_ref()),
-            UnsignedTransaction::Eip2930(tx) => tx.rlp_encode(s, chain_id, self.signature.as_ref()),
-            UnsignedTransaction::Eip1559(tx) => tx.rlp_encode(s, chain_id, self.signature.as_ref()),
+            UnsignedTransaction::Legacy(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
+            UnsignedTransaction::Eip2930(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
+            UnsignedTransaction::Eip1559(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
         };
     }
 
@@ -403,7 +408,7 @@ mod tests {
     fn mock_unverified_tx() -> UnverifiedTransaction {
         UnverifiedTransaction {
             unsigned:  UnsignedTransaction::Eip1559(mock_eip1559_transaction()),
-            chain_id:  random::<u64>(),
+            chain_id:  Some(random::<u64>()),
             hash:      H256::default(),
             signature: Some(mock_sig_component()),
         }
@@ -436,7 +441,7 @@ mod tests {
             public_to_address(&tx.recover_public(false).unwrap()),
             H160::from_slice(&hex_decode("0f65fe9276bc9a24ae7083ae28e2660ef72df99e").unwrap())
         );
-        assert_eq!(tx.chain_id, 0);
+        assert_eq!(tx.chain_id, None);
     }
 
     #[test]
@@ -457,7 +462,7 @@ mod tests {
             public_to_address(&tx.recover_public(false).unwrap()),
             H160::from_slice(&hex_decode("0f65fe9276bc9a24ae7083ae28e2660ef72df99e").unwrap())
         );
-        assert_eq!(tx.chain_id, 0);
+        assert_eq!(tx.chain_id, Some(0));
     }
 
     #[test]
@@ -557,7 +562,7 @@ mod tests {
         assert!(utx.unsigned.gas_limit().is_zero());
         assert!(utx.unsigned.gas_price().is_zero());
         assert!(utx.unsigned.max_priority_fee_per_gas().is_zero());
-        assert!(utx.chain_id == 5);
+        assert!(utx.chain_id == Some(5));
         assert_eq!(sig.standard_v, 0);
         assert_eq!(sig.r, hex_decode("02f860e3a0f35178c7a1a5a4e5b164157aa549a493cebc9a3079b6a9ede7ae5207adb3f4d48001c0f839a0d23761b364210735c19c60561d213fb3beae2fd6172743719eff6920e020baac9600016091d93dbab12f16640fb3a0a8f1e77e03fbc51c02").unwrap());
         assert_eq!(sig.s, hex_decode("0xf9015ff9015cb90157014599a5795423d54ab8e1f44f5c6ef5be9b1829beddb787bc732e4469d25f8c93e94afa393617f905bf1765c35dc38501a862b4b2f794a88b4f9010da02411a852d147a369b9ba6de71bf065f4831cc1ff9c4887c2dcfa669d6e4b9d24f0937c154974fd8399405052fdc8a6605a86040d670d47db1a092916aa5679b2e8604b449960de5880e8c687434170f6476605b8fe4aeb9a28632c7995cf3ba831d97630162f9fb777b2274797065223a22776562617574686e2e676574222c226368616c6c656e6765223a22593255355a544d324d545135595445775a5745345a6a64684e6a4a694e47526c4d574d7a4d5755784f44686c4e6a597a4d5745784d6d46685a44566d597a426a596d4e6d4f4746694d6a45774f4751334d6a646d4f51222c226f726967696e223a22687474703a2f2f6c6f63616c686f73743a38303030222c2263726f73734f726967696e223a66616c73657dc0c0").unwrap());
