@@ -85,13 +85,13 @@ impl<Adapter: APIAdapter> Web3RpcImpl<Adapter> {
 impl<Adapter: APIAdapter + 'static> AxonWeb3RpcServer for Web3RpcImpl<Adapter> {
     #[metrics_rpc("eth_sendRawTransaction")]
     async fn send_raw_transaction(&self, tx: Hex) -> RpcResult<H256> {
-        println!("====================eth_sendRawTransaction========
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
-        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        println!(" in======eth_sendRawTransaction================
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+        BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
         ");
         let utx = UnverifiedTransaction::decode(&tx.as_bytes())
             .map_err(|e| Error::Custom(e.to_string()))?;

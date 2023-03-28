@@ -40,7 +40,7 @@ const createTestDataMange = {
       }
     }
   },
-  async sendTransaction(account, data) {
+  async sendTransaction(data) {
     const nonce = await web3.eth.getTransactionCount(accountFrom.address);
     const tx = {
       type: 2,
@@ -58,7 +58,7 @@ const createTestDataMange = {
     const contract = new web3.eth.Contract(erc20.abi);
     const txOptions = { data: erc20.bytecode, arguments: ["TT", "TTT"] };
     const data = contract.deploy(txOptions).encodeABI();
-    const receipt = await this.sendTransaction(accountFrom.address, data);
+    const receipt = await this.sendTransaction(data);
     transactionInfo.contractAddress = receipt.contractAddress;
     transactionInfo.transactionHash = receipt.transactionHash;
     transactionInfo.blockHash = receipt.blockHash;
@@ -75,7 +75,7 @@ const createTestDataMange = {
   async writeFilterIds(filterIdIndex, id) {
     const filePath = `${basePath}/filterIds.json`;
     try {
-      const jsonData = await fs.readFileSync(filePath, "binary").toString();
+      const jsonData = fs.readFileSync(filePath, "binary").toString();
       const data = JSON.parse(jsonData);
       filterIds.filter_id_1 = data.filter_id_1;
       filterIds.filter_id_2 = data.filter_id_2;
@@ -131,14 +131,17 @@ const createTestDataMange = {
     const tx = new EthereumTx(txObject.toString("hex"));
     const privateKey = Buffer.from(Config.getIns().hexPrivateKey.substring(2), 'hex');
     tx.sign(privateKey);
+    // const signedTx = tx.sign(privateKey)
     const serializedTx = tx.serialize();
+    console.log(serializedTx.toString("hex"));
     return serializedTx.toString("hex");
   },
   async sendNonEip155RawTestTx() {
     const toAddress = Config.getIns().acount2;
     const nonce = (await web3.eth.getTransactionCount(accountFrom.address)) + 1;
     const txObject = {
-      nonce: nonce.toString(),
+      // nonce: nonce.toString(),
+      nonce: web3.utils.toHex(nonce),
       gasPrice: web3.utils.toHex(web3.utils.toWei("10", "gwei")),
       gasLimit: web3.utils.toHex(21000),
       to: toAddress,
@@ -146,13 +149,15 @@ const createTestDataMange = {
       // chain: "mainnet", 
       // hardfork: "homestead",
     };
+    console.log(txObject);
     // eslint-disable-next-line global-require    // "@ethereumjs/tx": "^2.0.0",
     // import Common, { Chain, Hardfork } from '@ethereumjs/common'
 // import { FeeMarketEIP1559Transaction } from '@ethereumjs/tx'
     // const Common = require('@ethereumjs/common').default;
     const  { Chain, Common, Hardfork }  = require('@ethereumjs/common');
     // const Common  = require('@ethereumjs/common');
-    const Transaction = require('@ethereumjs/tx').Transaction;
+    // const Transaction = require('@ethereumjs/tx').Transaction;
+    const {Transaction} = require('@ethereumjs/tx');
     // const test = Common.
     // const EthereumTx = require("ethereumjs-tx").Transaction;
     // const tx = Transaction.fromTxData(txObject.toString("hex"), { common: new Common({ chain: "mainnet", hardfork: "homestead" }) });
@@ -162,7 +167,8 @@ const createTestDataMange = {
     // const common = new Common({ chain: Chain.Mainnet, hardfork: Hardfork.TangerineWhistle, eips: [4844] })
     const common = new Common({chain: Chain.Mainnet, hardfork: Hardfork.TangerineWhistle});
     // const common = new Common.Common({ common: {hardfork: Hardfork.TangerineWhistle}});
-    const tx = Transaction.fromTxData(txObject.toString("hex"),{common});
+    const tx = Transaction.fromTxData(txObject,{common});
+    // const tx = Transaction.fromTxData(txObject.toString("hex"),{common});
     // const tx = Transaction.fromTxData(txParams, { common: new Common({ chain: txParams.chain, hardfork: txParams.hardfork }) });
     // const tx = new EthereumTx(txObject.toString("hex"), {
     //   chain: 'mainnet',// ropsten
@@ -171,11 +177,18 @@ const createTestDataMange = {
     // });
     console.log(tx);
     const privateKey = Buffer.from(Config.getIns().hexPrivateKey.substring(2), 'hex');
-    tx.sign(privateKey);
-    const serializedTx = tx.serialize();
+    // tx.sign(privateKey);
+    // const serializedTx = tx.serialize();
+    // console.log(serializedTx);
+    // console.log(serializedTx.toString("hex"));
+    // return serializedTx.toString("hex");
+    const signedTx = tx.sign(privateKey);
+    const serializedTx = signedTx.serialize();
     console.log(serializedTx);
     console.log(serializedTx.toString("hex"));
     return serializedTx.toString("hex");
+    // return "0x"+serializedTx.toString("hex");
+    // return serializedTx;
   },
 };
 export default createTestDataMange;
