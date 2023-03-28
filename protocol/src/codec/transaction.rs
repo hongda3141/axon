@@ -107,14 +107,16 @@ impl LegacyTransaction {
     }
 
     fn rlp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError> {
-        println!("UnverifiedTransaction decode :
+        println!(
+            "UnverifiedTransaction decode :
         lp_decode(r: &Rlp) -> Result<UnverifiedTransaction, DecoderError>AAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        ");
+        "
+        );
         if r.item_count()? != 9 {
             return Err(DecoderError::RlpIncorrectListLen);
         }
@@ -293,9 +295,15 @@ impl Encodable for UnverifiedTransaction {
         // let chain_id = Some(self.chain_id);
 
         match &self.unsigned {
-            UnsignedTransaction::Legacy(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
-            UnsignedTransaction::Eip2930(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
-            UnsignedTransaction::Eip1559(tx) => tx.rlp_encode(s, self.chain_id, self.signature.as_ref()),
+            UnsignedTransaction::Legacy(tx) => {
+                tx.rlp_encode(s, self.chain_id, self.signature.as_ref())
+            }
+            UnsignedTransaction::Eip2930(tx) => {
+                tx.rlp_encode(s, self.chain_id, self.signature.as_ref())
+            }
+            UnsignedTransaction::Eip1559(tx) => {
+                tx.rlp_encode(s, self.chain_id, self.signature.as_ref())
+            }
         };
     }
 
@@ -318,13 +326,15 @@ impl Decodable for UnverifiedTransaction {
         let raw = r.as_raw();
         let header = raw[0];
 
-        println!("let header = raw[0];AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+        println!(
+            "let header = raw[0];AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
         AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-        ");
+        "
+        );
         println!("header: {:?}, and: {:?}", header, header & 0x80);
         println!("raw: {:?}", &raw[0..10]);
         if (header & 0x80) != 0x00 {
@@ -462,7 +472,7 @@ mod tests {
             public_to_address(&tx.recover_public(false).unwrap()),
             H160::from_slice(&hex_decode("0f65fe9276bc9a24ae7083ae28e2660ef72df99e").unwrap())
         );
-        assert_eq!(tx.chain_id, Some(0));
+        assert_eq!(tx.chain_id, Some(0u64));
     }
 
     #[test]

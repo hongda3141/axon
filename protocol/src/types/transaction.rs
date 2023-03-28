@@ -115,16 +115,11 @@ impl UnsignedTransaction {
         }
     }
 
-    pub fn encode(&self, chain_id: Option<u64>, signature: Option<SignatureComponents>) -> BytesMut {
-        UnverifiedTransaction {
-            unsigned: self.clone(),
-            chain_id,
-            signature,
-            hash: Default::default(),
-        }
-        .rlp_bytes()
-    }
-    pub fn encode1(&self, chain_id: Option<u64>, signature: Option<SignatureComponents>) -> BytesMut {
+    pub fn encode(
+        &self,
+        chain_id: Option<u64>,
+        signature: Option<SignatureComponents>,
+    ) -> BytesMut {
         UnverifiedTransaction {
             unsigned: self.clone(),
             chain_id,
@@ -295,7 +290,6 @@ impl Eip1559Transaction {
 pub struct UnverifiedTransaction {
     pub unsigned:  UnsignedTransaction,
     pub signature: Option<SignatureComponents>,
-    // pub chain_id:  u64,
     pub chain_id:  Option<u64>,
     pub hash:      H256,
 }
@@ -309,7 +303,10 @@ impl UnverifiedTransaction {
     }
 
     pub fn get_hash(&self) -> H256 {
-        println!("=======get_hash=============self.chain_id : <{:?}>====", self.chain_id);
+        println!(
+            "=======get_hash=============self.chain_id : <{:?}>====",
+            self.chain_id
+        );
         // Hasher::digest(&self.unsigned.encode(self.chain_id, self.signature.clone()))
         // Hasher::digest(&self.unsigned.encode(self.chain_id, self.signature.clone()))
         Hasher::digest(&self.unsigned.encode(self.chain_id, self.signature.clone()))

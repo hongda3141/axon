@@ -28,7 +28,7 @@ export default async function setup() {
   process.env.PUPPETEER_WS_ENDPOINT = browser.wsEndpoint();
   global.browser = browser;
   global.metamask = metaMask;
-  
+
   const hostPage = await browser.newPage();
   await Config.getIns().initialize();
   await hostPage.goto(Config.getIns().httpServer);
@@ -42,32 +42,23 @@ export default async function setup() {
   console.log("111111111111111111111");
   console.log(configParams);
   // add custom network to a MetaMask
-  try {
-    await hostPage.evaluate((cfparams) => {
-      window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [
-          {
-            chainId: cfparams.chainId,
-            chainName: cfparams.networkName,
-            nativeCurrency: {
-              name: "Axon",
-              symbol: "Axon", // 2-6 characters long
-              decimals: 18,
-            },
-            rpcUrls: [cfparams.rpc],
+  await hostPage.evaluate((cfparams) => {
+    window.ethereum.request({
+      method: "wallet_addEthereumChain",
+      params: [
+        {
+          chainId: cfparams.chainId,
+          chainName: cfparams.networkName,
+          nativeCurrency: {
+            name: "Axon",
+            symbol: "Axon", // 2-6 characters long
+            decimals: 18,
           },
-        ],
-      });
-    }, configParams);
-    console.log("success");
-  } catch (error) {
-    console.log("addEthereumChain error")
-    console.log(error);
-    throw error;
-  }
-  
-  console.log("111111111111111111111");
+          rpcUrls: [cfparams.rpc],
+        },
+      ],
+    });
+  }, configParams);
   await metaMask.acceptAddNetwork(false);
   console.log("111111111111111111111");
   await metaMask.switchNetwork("Axon");
