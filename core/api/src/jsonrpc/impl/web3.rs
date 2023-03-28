@@ -95,7 +95,6 @@ impl<Adapter: APIAdapter + 'static> AxonWeb3RpcServer for Web3RpcImpl<Adapter> {
         ");
         let utx = UnverifiedTransaction::decode(&tx.as_bytes())
             .map_err(|e| Error::Custom(e.to_string()))?;
-        println!("utx is: {:?}", utx);
         let gas_price = utx.unsigned.gas_price();
 
         if gas_price == U256::zero() {
